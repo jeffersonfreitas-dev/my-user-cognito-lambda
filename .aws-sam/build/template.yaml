@@ -1,0 +1,45 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'my-user-sam
+
+  Sample SAM Template for my-user-sam
+
+  '
+Globals:
+  Function:
+    Timeout: 20
+    Architectures:
+    - x86_64
+    MemorySize: 512
+Resources:
+  MyUserSignUpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: MyUserSignUpFunction
+      Handler: dev.jeffersonfreitas.myusersam.MyUserSignUp::handleRequest
+      Runtime: java11
+      Events:
+        MyUserSignUp:
+          Type: Api
+          Properties:
+            Path: /sign-up
+            Method: post
+    Metadata:
+      SamResourceId: MyUserSignUpFunction
+Outputs:
+  MyUserSignUpApi:
+    Description: API Gateway endpoint URL for Prod stage for MyUserSignUpFunction
+    Value:
+      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/users/
+  MyUserSignUpFunction:
+    Description: MyUserSignUpFunction Lambda Function ARN
+    Value:
+      Fn::GetAtt:
+      - MyUserSignUpFunction
+      - Arn
+  MyUserSignUpFunctionIamRole:
+    Description: Implicit IAM Role created for MyUserSignUpFunction
+    Value:
+      Fn::GetAtt:
+      - MyUserSignUpFunctionRole
+      - Arn
