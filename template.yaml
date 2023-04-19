@@ -16,7 +16,7 @@ Globals:
         MY_COGNITO_POOL_CLIENT_ID: AQICAHgIlLUJE69KByxGFM2/8VYxJNThjm98ueSExZou1hukqwHfz5wWWm3cA98ZC3DrVFdmAAAAeDB2BgkqhkiG9w0BBwagaTBnAgEAMGIGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMBe5IlwgL2sYrT070AgEQgDVhADUVcXmH06oXDFUEJllTUo0O4O9/jxVarY63o0qY0QIVdCddQY0vtfG0f8r7M98gRnb4qA==
         MY_COGNITO_POOL_CLIENT_SECRET: AQICAHgIlLUJE69KByxGFM2/8VYxJNThjm98ueSExZou1hukqwG7P/KwZTaK9E4L1h34wiWCAAAAlDCBkQYJKoZIhvcNAQcGoIGDMIGAAgEAMHsGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQML3LO30UbRKxsZLlQAgEQgE4RsXHL5AIRlll5/JP1ETpOUWbs3v8kwPCs6QGNvfD3xiNvJMAI6ezw3hCiJnLUX6mStiknnT63DpsjFWLeW2djSeHsfaaJKImXZtC4gG0=
         MY_COGNITO_POOL_ID: AQICAHgIlLUJE69KByxGFM2/8VYxJNThjm98ueSExZou1hukqwEpgUGUjhrGhgfRBqwggGD0AAAAcTBvBgkqhkiG9w0BBwagYjBgAgEAMFsGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMPRuYIBXVg6Ud8GkDAgEQgC5melJGUWLYUHz6whCnvjkUk13TcPoH1s96ClhuHQxyOIDYdsKrQqbLG6RwNxjd
-
+        MY_DYNAMODB_CLIENT_ID:
 Resources:
   MyUserSignUpFunction:
     Type: AWS::Serverless::Function
@@ -30,7 +30,30 @@ Resources:
           Properties:
             Path: /sign-up
             Method: post
-
+  MyUserConfirmSignUpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: MyUserSam
+      Handler: dev.jeffersonfreitas.myusersam.MyUserConfirmSignUp::handleRequest
+      Runtime: java11
+      Events:
+        MyUserSignUp:
+          Type: Api
+          Properties:
+            Path: /confirm-sign-up
+            Method: post
+  MyUserLoginFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: MyUserSam
+      Handler: dev.jeffersonfreitas.myusersam.MyUserLogin::handleRequest
+      Runtime: java11
+      Events:
+        MyUserSignUp:
+          Type: Api
+          Properties:
+            Path: /login
+            Method: post
 Outputs:
   MyUserSignUpApi:
     Description: "API Gateway endpoint URL for Prod stage for MyUserSignUpFunction"

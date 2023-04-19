@@ -4,17 +4,12 @@ import com.google.gson.JsonObject;
 import dev.jeffersonfreitas.myusersam.utils.Constant;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cognitoidentityprovider.CognitoIdentityProviderClient;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.AttributeType;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.SignUpRequest;
-import software.amazon.awssdk.services.cognitoidentityprovider.model.SignUpResponse;
+import software.amazon.awssdk.services.cognitoidentityprovider.model.*;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class CognitoService {
 
@@ -55,6 +50,56 @@ public class CognitoService {
         return response;
     }
 
+
+    public JsonObject cofirmationSignUp(JsonObject requestBody, String clientId, String clientSecret) {
+        final String email = requestBody.get("email").getAsString();
+        final String code = requestBody.get("code").getAsString();
+
+        final String secretHash = calculateSecretHash(clientId, clientSecret, email);
+
+        ConfirmSignUpRequest confirmSignUpRequest = ConfirmSignUpRequest.builder()
+                .clientId(clientId)
+                .secretHash(secretHash)
+                .username(email)
+                .confirmationCode(code)
+                .build();
+
+        ConfirmSignUpResponse responseSignUp = cognitoProvider.confirmSignUp(confirmSignUpRequest);
+        JsonObject response = new JsonObject();
+        response.addProperty("isSuccessful", responseSignUp.sdkHttpResponse().isSuccessful());
+        response.addProperty("statusCode", responseSignUp.sdkHttpResponse().statusCode());
+        return response;
+    }
+
+    public JsonObject login(JsonObject requestBody, String clientId, String clientSecret) {
+        final String email = requestBody.get("email").getAsString();
+        final String password = requestBody.get("password").getAsString();
+
+        final String secretHash = calculateSecretHash(clientId, clientSecret, email);
+
+        Map<String, String> authParams = new HashMap<>() {
+            {
+                put("USERNAME", email);
+                put("PASSWORD", password);
+                put("SECRET_HASH", secretHash);
+            }
+        };
+
+        InitiateAuthRequest initiateAuthRequest = InitiateAuthRequest.builder()
+                .clientId(clientId)
+                .authFlow(AuthFlowType.USER_PASSWORD_AUTH)
+                .authParameters(authParams)
+                .build();
+        InitiateAuthResponse initiateAuthResponse = cognitoProvider.initiateAuth(initiateAuthRequest);
+        AuthenticationResultType authenticationResultType = initiateAuthResponse.authenticationResult();
+        JsonObject response = new JsonObject();
+        response.addProperty("isSuccessful", initiateAuthResponse.sdkHttpResponse().isSuccessful());
+        response.addProperty("statusCode", initiateAuthResponse.sdkHttpResponse().statusCode());
+        response.addProperty("idToken", authenticationResultType.idToken());
+        response.addProperty("accessToken", authenticationResultType.accessToken());
+        response.addProperty("refreshToken", authenticationResultType.accessToken());
+        return response;
+    }
 
     private String calculateSecretHash(String userPoolClientId, String userPoolClientSecret, String userName) {
         final String HMAC_SHA256_ALGORITHM = "HmacSHA256";
