@@ -14,9 +14,11 @@ import java.util.*;
 public class CognitoService {
 
     private final CognitoIdentityProviderClient cognitoProvider;
+    private final DynamoDBService dynamoDBService;
 
     public CognitoService(String region) {
         this.cognitoProvider = CognitoIdentityProviderClient.builder().region(Region.of(region)).build();
+        this.dynamoDBService = new DynamoDBService(region);
     }
 
     public JsonObject createUser(JsonObject userDetails, String clientId, String clientSecret) {
@@ -41,13 +43,19 @@ public class CognitoService {
                 .username(email)
                 .build();
 
-        SignUpResponse signUpResponse = cognitoProvider.signUp(signUpRequest);
-        JsonObject response = new JsonObject();
-        response.addProperty(Constant.IS_SUCCESSFUL, signUpResponse.sdkHttpResponse().isSuccessful());
-        response.addProperty(Constant.IS_CONFIRMED, signUpResponse.userConfirmed());
-        response.addProperty(Constant.STATUS_CODE, signUpResponse.sdkHttpResponse().statusCode());
-        response.addProperty(Constant.COGNITO_USER_ID, signUpResponse.userSub());
-        return response;
+        try {
+            SignUpResponse signUpResponse = cognitoProvider.signUp(signUpRequest);
+            dynamoDBService.createItem(name, email, userId);
+            JsonObject response = new JsonObject();
+            response.addProperty(Constant.IS_SUCCESSFUL, signUpResponse.sdkHttpResponse().isSuccessful());
+            response.addProperty(Constant.IS_CONFIRMED, signUpResponse.userConfirmed());
+            response.addProperty(Constant.STATUS_CODE, signUpResponse.sdkHttpResponse().statusCode());
+            response.addProperty(Constant.COGNITO_USER_ID, signUpResponse.userSub());
+            return response;
+        }catch(Exception e) {
+            throw new IllegalFormatFlagsException(e.getMessage());
+        }
+
     }
 
 
