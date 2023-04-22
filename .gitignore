@@ -1,3 +1,7 @@
 target
 .idea
 .aws-sam
+.quasar
+.vscode
+front/.quasar
+front/.vscode

@@ -6,6 +6,23 @@ Description: >
   Sample SAM Template for my-user-sam
 
 Globals:
+  Api:
+    GatewayResponses:
+      MISSING_AUTHENTICATION_TOKEN:
+        ResponseParameters:
+          Headers:
+            Access-Control-Allow-Origin: "'*'"
+            Access-Control-Allow-Headers: "'*'"
+            Cache-Control: "'no-cache'"
+            Content-Type: "'application/json'"
+        ResponseTemplates:
+          "application/json": '{"errors": [{errorKey: "error Value"}]}'
+        StatusCode: '404'
+        #defaultResponse: true
+    Cors:
+      AllowOrigin: "'*'"
+      AllowMethods: "'OPTIONS,POST'"
+      AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
   Function:
     Timeout: 20
     Architectures:
@@ -31,6 +48,10 @@ Resources:
           Properties:
             Path: /sign-up
             Method: post
+          Cors:
+            AllowOrigin: "'*'"
+            AllowMethods: "'OPTIONS,POST'"
+            AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
   MyUserConfirmSignUpFunction:
     Type: AWS::Serverless::Function
     Properties:
